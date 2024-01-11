@@ -1,4 +1,8 @@
-import tkinter, customtkinter as ctk, pygame, os, spotipy
+import tkinter
+import customtkinter as ctk
+import pygame
+import os
+import spotipy
 from CTkListbox import *
 from customtkinter import filedialog as fd
 
