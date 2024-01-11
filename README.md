@@ -1,4 +1,4 @@
-# Music-Player
+# MusicPlayerPy
 Python based music player made using pygame for sound control and ctk(customtkinter) for UI
 
 ## Requirements

@@ -1,0 +1,5 @@
+CTkListbox==1.1
+CTkListbox==1.2
+customtkinter==5.2.1
+pygame==2.5.2
+spotipy==2.23.0
