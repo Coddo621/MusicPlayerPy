@@ -115,5 +115,6 @@ class musicplayer(ctk.CTk):
 if __name__ == "__main__":
     root = ctk.CTk()
     app = musicplayer(root)
+    root.wm_iconbitmap(default="icon.ico")
     root.wm_protocol("WM_DELETE_WINDOW", func=lambda _: pygame.mixer.music.stop())
     root.mainloop()
