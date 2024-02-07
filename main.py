@@ -3,7 +3,7 @@ import customtkinter as ctk
 import pygame
 import os
 import threading
-from CTkListbox import *
+from CTkListbox import CTkListbox
 from customtkinter import filedialog as fd
 
 ctk.set_appearance_mode("System")
@@ -84,7 +84,7 @@ class musicplayer(ctk.CTk):
                 pygame.mixer.music.set_volume(volume)
 
                 percent = volume*100
-                volumeget.set(value = percent)
+                ctk.StringVar.set(self=volumeget, value = percent) # Hacky, but aviods errors
 
         self.volumeslider = ctk.CTkSlider(self.root, width = 1000, height = 25, command = changevolume)
         self.volumeslider.set(1.0)
@@ -115,4 +115,6 @@ class musicplayer(ctk.CTk):
 if __name__ == "__main__":
     root = ctk.CTk()
     app = musicplayer(root)
+    root.wm_iconbitmap(default="icon.ico")
+    root.wm_protocol("WM_DELETE_WINDOW", func=lambda : pygame.mixer.music.stop())
     root.mainloop()
