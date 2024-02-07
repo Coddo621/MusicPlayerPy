@@ -18,6 +18,7 @@ class musicplayer(ctk.CTk):
         self.root.title("MuseX")
         self.root.geometry(f"{1200}x{800}")
         self.root.resizable(False, False)
+        self.timerproc : threading.Timer = None
         #Redo icon implementation
         #self.root.iconbitmap("icon.ico")
         #print(os.path.abspath("icon.ico"))
@@ -36,9 +37,10 @@ class musicplayer(ctk.CTk):
         self.sidebar.place(x = 0, y = 0)
         def getsong():
             selectedsong = fd.askopenfilename(title = "Open file", initialdir = os.getcwd(), filetypes = (("mp3 Files", "*.mp3"), ("wav Files", "*.wav"), ("ogg Files", "*.ogg")))
-            self.song.set(selectedsong)
-            pygame.mixer.music.load(selectedsong)
-            pygame.mixer.music.play()
+            if selectedsong: # filter empty results
+                self.song.set(selectedsong)
+                pygame.mixer.music.load(selectedsong)
+                pygame.mixer.music.play()
 
         self.openfile = ctk.CTkButton(self.sidebar, text = "Open file", command = getsong, font = ctk.CTkFont(size = 25))
         self.openfile.place( x = 25, y = 25)
@@ -99,7 +101,8 @@ class musicplayer(ctk.CTk):
             self.playlist.delete(0, ctk.END)
             for song in new_songlist:
                 self.playlist.insert(ctk.END, song)
-            threading.Timer(5, ListSongs).start()
+            self.timerproc = threading.Timer(5, ListSongs)
+            self.timerproc.start()
 
         ListSongs()
 
@@ -115,6 +118,12 @@ class musicplayer(ctk.CTk):
 if __name__ == "__main__":
     root = ctk.CTk()
     app = musicplayer(root)
-    root.wm_iconbitmap(default="icon.ico")
-    root.wm_protocol("WM_DELETE_WINDOW", func=lambda : pygame.mixer.music.stop())
+    def stopapp():
+        print("Stopped")
+        root.destroy()
+        pygame.mixer.music.stop()
+    iconobject = tkinter.PhotoImage(name="appicon", file="appicon.png") # Ico is windows specific
+    root.wm_iconphoto(True, iconobject)
+    root.wm_protocol("WM_DELETE_WINDOW", func=stopapp)
     root.mainloop()
+    app.timerproc.cancel()
