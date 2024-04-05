@@ -30,13 +30,12 @@ class musicplayer(ctk.CTk):
 
         # control vars
         self.song = ctk.StringVar()
-        self.PlaybackPosition = 0
         self.song_length = ctk.StringVar()
 
         # sidebar init
         self.sidebar = ctk.CTkFrame(self.root, height = 800, width = 200)
         self.sidebar.place(x = 0, y = 0)
-
+    
         # get song file and trim the cwd
         def getsong():
             selected_song = fd.askopenfilename(title = "Open file", initialdir = os.getcwd(), filetypes = (("mp3 Files", "*.mp3"), ("wav Files", "*.wav"), ("ogg Files", "*.ogg")))
@@ -47,19 +46,22 @@ class musicplayer(ctk.CTk):
                 self.song_reference = self.song_sound.get_length()
                 pygame.mixer.music.load(selected_song)
                 pygame.mixer.music.play()
-                
             else:
                 CTkMessagebox(title="Error", message="You didn't choose a file!", icon="warning", option_1="OK")
         self.openfile = ctk.CTkButton(self.sidebar, text = "Open file", command = getsong, font = ctk.CTkFont(size = 25)).place( x = 25, y = 25)
 
+        self.pause_play = ctk.StringVar()
+        self.pause_play.set("Pause")
         def pauseunpause():
             if pygame.mixer.music.get_busy():
-                self.PlaybackPosition = pygame.mixer.music.get_pos() / 1000
+                self.pause_play.set("Play")
+                PlaybackPosition = pygame.mixer.music.get_pos() / 1000
                 pygame.mixer.music.pause()
             else:
+                self.pause_play.set("Pause")
                 pygame.mixer.music.unpause()
-                pygame.mixer.music.set_pos(self.PlaybackPosition)
-        self.pausebutton = ctk.CTkButton(self.sidebar, text = "Pause", command = pauseunpause, font = ctk.CTkFont(size = 25)).place(x = 25, y = 75)
+                pygame.mixer.music.set_pos(PlaybackPosition)
+        self.pausebutton = ctk.CTkButton(self.sidebar, textvariable=self.pause_play, command = pauseunpause, font = ctk.CTkFont(size = 25)).place(x = 25, y = 75)
 
         #Stop Button
         def stopsong():
@@ -67,26 +69,18 @@ class musicplayer(ctk.CTk):
             self.song.set("")
         self.stopbutton = ctk.CTkButton(self.sidebar, text = "Stop", command =  stopsong,font = ctk.CTkFont(size = 25)).place(x = 25, y = 125)
 
-        self.songtrack = ctk.CTkLabel(self.root, textvariable = self.song, font = ctk.CTkFont(size = 50), text_color = "#D1D466").place(x = 225, y = 25)
+        self.songtrack = ctk.CTkLabel(self.root, textvariable = self.song, font = ctk.CTkFont(size = 50), text_color = "#5F939A").place(x = 225, y = 25)
         
-        self.playlistframe = ctk.CTkFrame(self.root, width = 500, height = 575)
+        self.playlistframe = ctk.CTkFrame(self.root, width = 1000, height = 600, fg_color="#A34343")
         self.playlistframe.place(x = 200, y = 100)
         self.playlistscroll = ctk.CTkScrollbar(self.root)
-        self.playlist = CTkListbox(self.playlistframe, width = 500, height = 575, fg_color = "#900C3F", font = ("lexend", 20), text_color = "#D1D466", border_width = 0)
-        self.playlist.place(x = 0, y = 0)
+        self.playlist_label = ctk.CTkLabel(self.playlistframe, anchor="center", text="Playlist", fg_color="#A34343", font=("lexend", 20), text_color="#5F939A", width=1000).place(x=0, y=0)
+        self.playlist = CTkListbox(self.playlistframe, width = 1000, height = 600, fg_color = "#A34343", font = ("lexend", 20), text_color = "#5F939A", border_width = 0)
+        self.playlist.place(x = 0, y = 35)
 
-        self.queue = ctk.CTkFrame(self.root, width = 500, height=575)
-        self.queue.place(x=700, y = 100)
-        self.queue_label = ctk.CTkLabel(self.queue, anchor="center", text="Queue", fg_color = "#900C3F", font = ("lexend", 20), text_color = "#D1D466", width=500).place(x=0, y=0)
-        self.queue_list = CTkListbox(self.queue, width=500, height=550, fg_color="#900C3F", font=("lexend", 20), text_color="#D1D466", border_width=0)
-        self.queue_list.place(x=0, y=25)
-
-        volumeget = ctk.StringVar
         def ChangeVolume(volume):
             if(self.song.get() != ""):
                 pygame.mixer.music.set_volume(volume)
-                ctk.StringVar.set(self=volumeget, value = volume*100) # Hacky, but avoids errors
-        #self.volume_label = ctk.CTkLabel(self.side)
 
         self.volumeslider = ctk.CTkSlider(self.sidebar, width = 150, height = 25, command = ChangeVolume)
         self.volumeslider.set(1.0)
@@ -105,25 +99,41 @@ class musicplayer(ctk.CTk):
         self.playlist.get()
         def playsong(event):
             CSelection = self.playlist.curselection()
-            selectedsong = self.playlist.get(self.playlist.get(CSelection))
-            self.song.set(selectedsong)
-            pygame.mixer.music.load(selectedsong)
+            selected_song = self.playlist.get(self.playlist.get(CSelection))
+            song_basename = os.path.basename(selected_song)
+            self.song.set(os.path.splitext(song_basename)[0])
+            self.song_sound = pygame.mixer.Sound(selected_song)
+            self.song_reference = self.song_sound.get_length()
+            pygame.mixer.music.load(selected_song)
             pygame.mixer.music.play()
-        
         self.playlist.bind("<Double-Button-1>", playsong)
 
-        self.song_time_label = ctk.CTkLabel(self.sidebar, textvariable=self.song_length, font=ctk.CTkFont(size = 25), text_color = "#D1D466").place(x=25, y = 700)
+        def move_time_slider(value):
+            if self.song.get() != "":
+                pygame.mixer.music.set_pos(value*self.song_reference)
+
+        self.song_time_label = ctk.CTkLabel(self.sidebar, textvariable=self.song_length, font=ctk.CTkFont(size = 25), text_color="#5F939A").place(x=25, y = 700)
+        self.time_slider = ctk.CTkSlider(self.root, width=950, command=move_time_slider)
+        self.time_slider.set(0)
+        self.time_slider.place(x=225, y=775)
+        
+        self.time_slider_value = 0
         def update_time():
             if self.song.get() != "":
                 current_time = pygame.mixer.music.get_pos() / 1000
-                current_minutes = int(current_time // 60)
-                current_seconds = int(current_time % 60)
-                total_minutes = int(self.song_reference // 60)
-                total_seconds = int(self.song_reference % 60)
+                print(current_time)
+                current_minutes = "{:02d}".format(int(current_time // 60))
+                current_seconds = "{:02d}".format(int(current_time % 60))
+                total_minutes = "{:02d}".format(int(self.song_reference // 60))
+                total_seconds = "{:02d}".format(int(self.song_reference % 60))
                 song_length_text = f"{current_minutes}:{current_seconds} / {total_minutes}:{total_seconds}"
                 self.song_length.set(song_length_text)
+                self.time_slider_value = float(current_time/self.song_reference)
+                self.time_slider.set(self.time_slider_value)
             else:
                 self.song_length.set("00:00 / 00:00")
+                self.time_slider_value = 0
+                self.time_slider.set(self.time_slider_value)
             self.song_timeproc = threading.Timer(1, update_time)
             self.song_timeproc.start()
         update_time()
