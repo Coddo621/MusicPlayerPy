@@ -5,10 +5,9 @@ with contextlib.redirect_stdout(None): # start app without pygame start console 
     import pygame
 import sys
 import os
-import time
 import threading
 from CTkListbox import CTkListbox
-from customtkinter import filedialog as fd
+from customtkinter import filedialog
 from CTkMessagebox import CTkMessagebox
 
 ctk.set_appearance_mode("System")   
@@ -31,6 +30,7 @@ class musicplayer(ctk.CTk):
         # control vars
         self.song = ctk.StringVar()
         self.song_length = ctk.StringVar()
+        self.time_slider_value = 0
 
         # sidebar init
         self.sidebar = ctk.CTkFrame(self.root, height = 800, width = 200)
@@ -38,7 +38,7 @@ class musicplayer(ctk.CTk):
     
         # get song file and trim the cwd
         def getsong():
-            selected_song = fd.askopenfilename(title = "Open file", initialdir = os.getcwd(), filetypes = (("mp3 Files", "*.mp3"), ("wav Files", "*.wav"), ("ogg Files", "*.ogg")))
+            selected_song = filedialog.askopenfilename(title = "Open file", initialdir = os.getcwd(), filetypes = (("mp3 Files", "*.mp3"), ("wav Files", "*.wav"), ("ogg Files", "*.ogg")))
             if selected_song: # filter empty results
                 song_basename = os.path.basename(selected_song)
                 self.song.set(os.path.splitext(song_basename)[0])
@@ -69,23 +69,22 @@ class musicplayer(ctk.CTk):
             self.song.set("")
         self.stopbutton = ctk.CTkButton(self.sidebar, text = "Stop", command =  stopsong,font = ctk.CTkFont(size = 25)).place(x = 25, y = 125)
 
-        self.songtrack = ctk.CTkLabel(self.root, textvariable = self.song, font = ctk.CTkFont(size = 50), text_color = "#5F939A").place(x = 225, y = 25)
-        
-        self.playlistframe = ctk.CTkFrame(self.root, width = 1000, height = 600, fg_color="#A34343")
-        self.playlistframe.place(x = 200, y = 100)
-        self.playlistscroll = ctk.CTkScrollbar(self.root)
-        self.playlist_label = ctk.CTkLabel(self.playlistframe, anchor="center", text="Playlist", fg_color="#A34343", font=("lexend", 20), text_color="#5F939A", width=1000).place(x=0, y=0)
-        self.playlist = CTkListbox(self.playlistframe, width = 1000, height = 600, fg_color = "#A34343", font = ("lexend", 20), text_color = "#5F939A", border_width = 0)
-        self.playlist.place(x = 0, y = 35)
-
         def ChangeVolume(volume):
             if(self.song.get() != ""):
                 pygame.mixer.music.set_volume(volume)
-
         self.volumeslider = ctk.CTkSlider(self.sidebar, width = 150, height = 25, command = ChangeVolume)
         self.volumeslider.set(1.0)
         self.volumeslider.place(x = 25, y = 750)
         
+        self.songtrack = ctk.CTkLabel(self.root, textvariable = self.song, font = ctk.CTkFont(size = 50), text_color = "#5F939A").place(x = 225, y = 25)
+        
+        self.playlistframe = ctk.CTkFrame(self.root, width = 1000, height = 600, fg_color="#A34343")
+        self.playlistframe.place(x = 200, y = 100)
+        self.playlistscroll = ctk.CTkScrollbar(self.playlistframe)
+        self.playlist_label = ctk.CTkLabel(self.playlistframe, anchor="center", text="Playlist", fg_color="#A34343", font=("lexend", 20), text_color="#5F939A", width=1000).place(x=0, y=0)
+        self.playlist = CTkListbox(self.playlistframe, width = 1000, height = 600, fg_color = "#A34343", font = ("lexend", 20), text_color = "#5F939A", border_width = 0)
+        self.playlist.place(x = 0, y = 35)
+
         def ListSongs():
             os.chdir(os.getcwd())
             new_songlist = [song for song in os.listdir() if os.path.splitext(song)[1] in [".mp3", ".wav", ".ogg"]]
@@ -117,7 +116,6 @@ class musicplayer(ctk.CTk):
         self.time_slider.set(0)
         self.time_slider.place(x=225, y=775)
         
-        self.time_slider_value = 0
         def update_time():
             if self.song.get() != "":
                 current_time = pygame.mixer.music.get_pos() / 1000
