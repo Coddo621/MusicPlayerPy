@@ -1,5 +1,0 @@
-Problems while coding:
-git merging
-move from tk to ctk
-linux terminal settings
-intellisense extension not working
