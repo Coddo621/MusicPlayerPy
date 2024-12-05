@@ -136,11 +136,6 @@
       "text_color": ["gray14", "gray84"]
     },
     "CTkFont": {
-      "macOS": {
-        "family": "SF Display",
-        "size": 13,
-        "weight": "normal"
-      },
       "Windows": {
         "family": "Roboto",
         "size": 13,
